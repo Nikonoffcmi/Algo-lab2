@@ -186,11 +186,8 @@ int main(){
     uniform_int_distribution<> distribution(0, 500); 
     binomial_distribution<int> bin_distribution(500,0.5);
     normal_distribution<double> norm_distribution(250.0, 80.0);
-    int count = 50;
-    double s_result1, u_result1, s_result2, u_result2;
-    for (size_t j = 0; j < count; j++)
-    {
-        int size = 211;
+    
+    int size = 211;
 	Hash_table myHash(size, true); // создает хеш-таблицу, false - линейное зондирование false, true - двойное хеширование
 	Hash_table myHash2(size, false); // создает хеш-таблицу, false - линейное зондирование false, true - двойное хеширование
 
@@ -250,26 +247,12 @@ int main(){
         }
     }
 
-    // cout<< "Average of successful search 1: " << s_sum1/s_count1 << "    " << s_count1;
-    // cout<< "\nAverage of unsuccessful search 1: " << u_sum1/u_count1 << "    " << u_count1<< "\n"; 
+    cout<< "Average of successful search 1: " << s_sum1/s_count1 << "    " << s_count1;
+    cout<< "\nAverage of unsuccessful search 1: " << u_sum1/u_count1 << "    " << u_count1<< "\n"; 
 	
-    // cout<< "Average of successful search 2: " << s_sum2/s_count2 << "    " << s_count2; 
-    // cout<< "\nAverage of unsuccessful search 2: " << u_sum2/u_count2 << "    " << u_count2 << "\n"; 
+    cout<< "Average of successful search 2: " << s_sum2/s_count2 << "    " << s_count2; 
+    cout<< "\nAverage of unsuccessful search 2: " << u_sum2/u_count2 << "    " << u_count2 << "\n"; 
 
-    s_result1 += s_sum1/s_count1;
-    u_result1 += u_sum1/u_count1;
-    s_result2 += s_sum2/s_count2;
-    u_result2 += u_sum2/u_count2;
-    }
-    
-    
-    
-
-    cout<< "Average of successful search 1: " << s_result1/count;
-    cout<< "\nAverage of unsuccessful search 1: " << u_result1/count << "\n"; 
-	
-    cout<< "Average of successful search 2: " << s_result2/count; 
-    cout<< "\nAverage of unsuccessful search 2: " << u_result2/count << "\n"; 
 
 	// /* массив элементов для удаления */
 	
