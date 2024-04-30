@@ -1,24 +1,20 @@
 #include <iostream> 
 #include <vector> 
-#include <bitset> 
+#include <array>
+#include <random>
+#include <algorithm>
+
 using namespace std; 
 
 #define MAX_SIZE 10000001ll 
 
 class Hash_table { 
     bool collision;
-	int TABLE_SIZE, keysPresent, PRIME; 
+	int TABLE_SIZE, keysPresent; 
 	vector<int> hashTable; 
-	bitset<MAX_SIZE> isPrime; 
     int search_counter = 0;
 
-	void __setSieve(){ 
-		isPrime[0] = isPrime[1] = 1; 
-		for(long long i = 2; i*i <= MAX_SIZE; i++) 
-			if(isPrime[i] == 0) 
-				for(long long j = i*i; j <= MAX_SIZE; j += i) 
-					isPrime[j] = 1; 
-	} 
+
 
     
 	int inline hash1(int value){ 
@@ -26,7 +22,7 @@ class Hash_table {
 	} 
 	
 	int inline hash2(int value){	 
-		return 1 + (value%(TABLE_SIZE - 1)); 
+		return 1 + (value % (TABLE_SIZE - 1));
 	} 
 
 	bool inline isFull(){ 
@@ -41,27 +37,14 @@ class Hash_table {
     }
 
 	Hash_table(int n, bool set_collision){ 
-		__setSieve(); 
 		TABLE_SIZE = n; 
         collision = set_collision; //false - линейное зондирование false, true - двойное хеширование
-
-		/* Находим самое большое простое число, которое меньше размера таблицы */
-		PRIME = TABLE_SIZE - 1; 
-		while(isPrime[PRIME] == 1) 
-			PRIME--; 
 
 		keysPresent = 0; 
 
 		/* заполняем таблицу пустыми элементами */
 		for(int i = 0; i < TABLE_SIZE; i++) 
 			hashTable.push_back(-1); 
-	} 
-
-	void __printPrime(long long n){ 
-		for(long long i = 0; i <= n; i++) 
-			if(isPrime[i] == 0) 
-				cout<<i<<", "; 
-		cout<<endl; 
 	} 
 
 	void insert(int value){ 
@@ -93,28 +76,33 @@ class Hash_table {
         
 	} 
 
-	void erase(int value){ 
-		/* Return если элемента нет в таблице */
-		if(!search(value)) 
-			return;
+	void erase(int value){
 		
-        int offset = 0;
+        int offset = 0;  
 		if (collision){
             offset = hash2(value);
-            int probe = hash1(value); 
+            int probe = hash1(value), initialPos = probe; 
+            bool firstItr = true; 
             
-            while(hashTable[probe] != -1) 
-            if(hashTable[probe] == value){ 
-                hashTable[probe] = -2;          // пометить элемент как удаленный при двойном хеширование
-                keysPresent--; 
-                return; 
-            } 
-            else
-                probe = (probe + offset) % TABLE_SIZE;  
+            while(hashTable[probe] != -1){
+                if(hashTable[probe] == value){ 
+                    hashTable[probe] = -2;          // пометить элемент как удаленный при двойном хеширование
+                    keysPresent--; 
+                    return; 
+                }
+                else if(probe == initialPos && !firstItr)
+                    break;
+                else
+                    probe = (probe + offset) % TABLE_SIZE; 
+
+                firstItr = false;
+            }
+            
         }
         else{
             offset = 1;
-            int probe = hash1(value); 
+            int probe = hash1(value), initialPos = probe; 
+            bool firstItr = true;  
 
             while(hashTable[probe] != -1) 
                 if(hashTable[probe] == value){ 
@@ -129,19 +117,12 @@ class Hash_table {
 
                     while(true)
                     {
-                        if (probe >= hashTable.size())
-                            break;
-                        if (hashTable[probe] == -2)
-                        {
-                            probe = (probe + offset) % TABLE_SIZE; 
-                            continue;
-                        }
-                        else if (hashTable[probe] == -1)
+                        if (hashTable[probe] == -1)
                             break;
                         else 
                         {
                             int buf = hash1(hashTable[probe]);
-                            if (buf != probe && buf < old_probe){
+                            if (buf != probe && buf <= old_probe){
                                 hashTable[old_probe] = hashTable[probe];
                                 hashTable[probe] = -1;
                                 old_probe = probe;   
@@ -154,8 +135,12 @@ class Hash_table {
 
                     return; 
                 } 
+                else if(probe == initialPos && !firstItr)
+                    break;
                 else
                     probe = (probe + offset) % TABLE_SIZE; 
+
+                firstItr = false;
         }
 	} 
 
@@ -196,68 +181,96 @@ class Hash_table {
 }; 
 
 int main(){ 
-
-	Hash_table myHash(10, true); // создает хеш-таблицу, false - линейное зондирование false, true - двойное хеширование
+    random_device random_device; 
+    mt19937 generator(random_device());
+    uniform_int_distribution<> distribution(0, 500); 
+    int count = 100;
+    double s_result1, u_result1, s_result2, u_result2;
+    for (size_t j = 0; j < count; j++)
+    {
+        int size = 211;
+	Hash_table myHash(size, true); // создает хеш-таблицу, false - линейное зондирование false, true - двойное хеширование
+	Hash_table myHash2(size, false); // создает хеш-таблицу, false - линейное зондирование false, true - двойное хеширование
 
 	/* массив элементов для вставки */
 	
-	int insertions[] = {2, 22, 12, 32, 6, 66, 52, 56}, 
-		n1 = sizeof(insertions)/sizeof(insertions[0]); 
+	const size_t n1 = 169; 
+	vector<int>  insertions(n1);
+	for(int i = 0; i < n1; i++){ 
+        int x = -1;
+        while (x == -1 || x == -2 || find(insertions.begin(), insertions.end(), x) != insertions.end()){
+            x = distribution(generator);
+        }
+        
+        insertions[i] = x;
+        myHash.insert(insertions[i]); 
+        myHash2.insert(insertions[i]);
+    }
 	
-	for(int i = 0; i < n1; i++) 
-		myHash.insert(insertions[i]); 
-	
-	cout<< "Status of hash table after initial insertions: "; myHash.print(); 
+    // cout<< "Status of hash table after initial insertions: "; myHash.print(); 
+	// cout<< "Status of hash table after initial insertions: "; myHash2.print(); 
 	
 
 	/* массив элементов для поиска*/
 	
-	// int queries[] = {1, 49, 65, 12, 2, 43, 56, 3, 69, 88, 115, 49}, 
-	// 	n2 = sizeof(queries)/sizeof(queries[0]); 
+    const size_t n2 = 500; 
+	vector<int>  queries(n2);
+	for(int i = 0; i < n2; i++){ 
+        int x = -1;
+        while (x == -1 || x == -2 || find(queries.begin(), queries.end(), x) != queries.end()){
+            x = distribution(generator);
+        }
+        queries[i] = x;
+        
+    }
+
+    double s_sum1 = 0, u_sum1 = 0, s_sum2 = 0, u_sum2 = 0;
+    double s_count1 = 0, s_count2 = 0, u_count1 = 0, u_count2 = 0; 
+
+	for(int i = 0; i < n2; i++){
+		if(myHash.search(queries[i])) 
+        {
+            s_sum1 += myHash.get_search_counter();
+            s_count1++;
+        }
+        else{
+            u_sum1 += myHash.get_search_counter();
+            u_count1++;
+        }
+        if(myHash2.search(queries[i])) 
+        {
+            s_sum2 += myHash2.get_search_counter();
+            s_count2++;
+        }
+        else{
+            u_sum2 += myHash2.get_search_counter();
+            u_count2++;
+        }
+    }
+    s_result1 += s_sum1/s_count1;
+    u_result1 += u_sum1/u_count1;
+    s_result2 += s_sum2/s_count2;
+    u_result2 += u_sum2/u_count2;
+    }
+    
+    
+    
+
+    cout<< "Average of successful search 1: " << s_result1/count;
+    cout<< "\nAverage of unsuccessful search 1: " << u_result1/count << "\n"; 
 	
-	// cout<<"\n"<<"Search operation after insertion : \n"; 
+    cout<< "Average of successful search 2: " << s_result2/count; 
+    cout<< "\nAverage of unsuccessful search 2: " << u_result2/count << "\n"; 
 
-    // vector<int> s_search;
-    // vector<int> u_search;
-
-	// for(int i = 0; i < n2; i++) 
-	// 	if(myHash.search(queries[i])) 
-    //     {
-    //         s_search.push_back(myHash.get_search_counter());
-    //         cout<<queries[i]<<" present\n"; 
-    //     }
-    //     else
-    //         u_search.push_back(myHash.get_search_counter());
-
-    // double s_sum = 0, u_sum = 0;
-    // double s_result = 0, u_result = 0; 
-    // for (int i = 0; i < s_search.size(); i++)
-    // {
-    //     s_sum += s_search[i];
-    // }
-    // for (int i = 0; i < u_search.size(); i++)
-    // {
-    //     u_sum += u_search[i];
-    // }
-    // s_result = (double)s_sum/s_search.size();
-    // if (u_search.size() == 0)
-    //     u_result = 0;
-    // else
-    //     u_result = (double)u_sum/u_search.size();
-
-    // cout<< "Average of successful search : " << s_result; 
-    // cout<< "\nAverage of unsuccessful search : " << u_result << "\n"; 
+	// /* массив элементов для удаления */
 	
-
-	/* массив элементов для удаления */
+	// int deletions[] = {2}, 
+	// 	n3 = sizeof(deletions)/sizeof(deletions[0]); 
 	
-	int deletions[] = {22}, 
-		n3 = sizeof(deletions)/sizeof(deletions[0]); 
-	
-	for(int i = 0; i < n3; i++) 
-		myHash.erase(deletions[i]); 
+	// for(int i = 0; i < n3; i++) 
+	// 	myHash.erase(deletions[i]); 
 
-	cout<< "Status of hash table after deleting elements : "; myHash.print(); 
+	// cout<< "Status of hash table after deleting elements : "; myHash.print(); 
 	
 	return 0; 
 }
