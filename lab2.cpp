@@ -163,7 +163,7 @@ class Hash_table {
 			else if(hashTable[probe] == value)		 // прекратить поиск если элемент нашли
 				return true; 
 			else if(probe == initialPos && !firstItr) // прекратить поиск если была проверена вся таблица
-				return false; 
+				break; 
 			else
 				probe = ((probe + offset) % TABLE_SIZE); // обновление индекса
 
@@ -184,7 +184,9 @@ int main(){
     random_device random_device; 
     mt19937 generator(random_device());
     uniform_int_distribution<> distribution(0, 500); 
-    int count = 100;
+    binomial_distribution<int> bin_distribution(500,0.5);
+    normal_distribution<double> norm_distribution(250.0, 80.0);
+    int count = 50;
     double s_result1, u_result1, s_result2, u_result2;
     for (size_t j = 0; j < count; j++)
     {
@@ -194,12 +196,12 @@ int main(){
 
 	/* массив элементов для вставки */
 	
-	const size_t n1 = 169; 
+	const size_t n1 = 10; 
 	vector<int>  insertions(n1);
 	for(int i = 0; i < n1; i++){ 
         int x = -1;
-        while (x == -1 || x == -2 || find(insertions.begin(), insertions.end(), x) != insertions.end()){
-            x = distribution(generator);
+        while (x < 0 || find(insertions.begin(), insertions.end(), x) != insertions.end()){
+            x = (int)norm_distribution(generator);
         }
         
         insertions[i] = x;
@@ -213,12 +215,12 @@ int main(){
 
 	/* массив элементов для поиска*/
 	
-    const size_t n2 = 500; 
+    const size_t n2 = 300; 
 	vector<int>  queries(n2);
 	for(int i = 0; i < n2; i++){ 
         int x = -1;
-        while (x == -1 || x == -2 || find(queries.begin(), queries.end(), x) != queries.end()){
-            x = distribution(generator);
+        while (x < 0 || find(queries.begin(), queries.end(), x) != queries.end()){
+            x = norm_distribution(generator);
         }
         queries[i] = x;
         
@@ -247,6 +249,13 @@ int main(){
             u_count2++;
         }
     }
+
+    // cout<< "Average of successful search 1: " << s_sum1/s_count1 << "    " << s_count1;
+    // cout<< "\nAverage of unsuccessful search 1: " << u_sum1/u_count1 << "    " << u_count1<< "\n"; 
+	
+    // cout<< "Average of successful search 2: " << s_sum2/s_count2 << "    " << s_count2; 
+    // cout<< "\nAverage of unsuccessful search 2: " << u_sum2/u_count2 << "    " << u_count2 << "\n"; 
+
     s_result1 += s_sum1/s_count1;
     u_result1 += u_sum1/u_count1;
     s_result2 += s_sum2/s_count2;
