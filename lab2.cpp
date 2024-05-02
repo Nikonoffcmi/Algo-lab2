@@ -1,3 +1,6 @@
+#include <fstream>
+#include <iterator>
+#include <string>
 #include <iostream> 
 #include <vector> 
 #include <array>
@@ -187,54 +190,110 @@ int main(){
     binomial_distribution<int> bin_distribution(500,0.5);
     normal_distribution<double> norm_distribution(250.0, 80.0);
     
-    int size = 10;
+    int size = 211;
 	Hash_table myHash(size, true); // создает хеш-таблицу, false - линейное зондирование false, true - двойное хеширование
 	Hash_table myHash2(size, false); // создает хеш-таблицу, false - линейное зондирование false, true - двойное хеширование
 
 	/* массив элементов для вставки */
 	
-	int insertions[] = {2, 22, 12, 32, 6, 66, 52, 56, 92}, 
-		n1 = sizeof(insertions)/sizeof(insertions[0]); 
+	const size_t n1 = 200; 
+	vector<int>  insertions(n1);
+	// for(int i = 0; i < n1; i++){ 
+    //     int x = -1;
+    //     while (x < 0 || find(insertions.begin(), insertions.end(), x) != insertions.end()){
+    //         x = (int)distribution(generator);
+    //     }
+        
+    //     insertions[i] = x;
+    //     myHash.insert(insertions[i]); 
+    //     myHash2.insert(insertions[i]);
+    // }
 	
-	for(int i = 0; i < n1; i++) 
-		myHash.insert(insertions[i]); 
+    // //cout<< "Status of hash table after initial insertions: "; myHash.print(); 
+	// //cout<< "Status of hash table after initial insertions: "; myHash2.print(); 
 	
-	cout<< "Status of hash table after initial insertions: "; myHash.print();
-	
-    // cout<< "Status of hash table after initial insertions: "; myHash.print(); 
-	// cout<< "Status of hash table after initial insertions: "; myHash2.print(); 
-	
+    // ofstream output_file("./write_example_uniform.txt");
 
-    /* массив элементов для поиска*/
-	
-	int queries[] = {2, 0, 12, 123, 66, 92}, 
-		n2 = sizeof(queries)/sizeof(queries[0]); 
-	
-	cout<<"\n"<<"Search operation after insertion : \n"; 
+    // ostream_iterator<int> output_iterator(output_file, "\n");
+    // copy(begin(insertions), end(insertions), output_iterator);
+    
+    int element;
+    std::ifstream fin("write_example_uniform.txt");
+    
+    int numLinesToRead = 43; // Количество строк для чтения
+    std::string line;
+    for (int i = 0; i < numLinesToRead && std::getline(fin, line); ++i) {
+        int num = std::atoi(line.c_str()); // Преобразуем строку в целое число
+        myHash.insert(num); 
+        myHash2.insert(num);
+    }
 
-    vector<int> s_search;
-    vector<int> u_search;
+    fin.close(); // Закрываем файл
 
-	for(int i = 0; i < n2; i++) 
+	/* массив элементов для поиска*/
+	
+    const size_t n2 = 300; 
+	vector<int>  queries;
+	// for(int i = 0; i < n2; i++){ 
+    //     int x = -1;
+    //     while (x < 0 || find(queries.begin(), queries.end(), x) != queries.end()){
+    //         x = norm_distribution(generator);
+    //     }
+    //     queries[i] = x;
+        
+    // }
+
+    // ofstream output_file("./search_example.txt");
+
+    // ostream_iterator<int> output_iterator(output_file, "\n");
+    // copy(begin(queries), end(queries), output_iterator);
+
+    std::ifstream fin2("search_example.txt");
+    while (fin2 >> element)
+    {
+        queries.push_back(element);
+    }
+
+    double s_sum1 = 0, u_sum1 = 0, s_sum2 = 0, u_sum2 = 0;
+    double s_count1 = 0, s_count2 = 0, u_count1 = 0, u_count2 = 0; 
+
+	for(int i = 0; i < n2; i++){
 		if(myHash.search(queries[i])) 
         {
-            cout<<queries[i]<<" present\n"; 
+            s_sum1 += myHash.get_search_counter();
+            s_count1++;
         }
-        else
-            cout<<queries[i]<<" not present\n"; 
+        else{
+            u_sum1 += myHash.get_search_counter();
+            u_count1++;
+        }
+        if(myHash2.search(queries[i])) 
+        {
+            s_sum2 += myHash2.get_search_counter();
+            s_count2++;
+        }
+        else{
+            u_sum2 += myHash2.get_search_counter();
+            u_count2++;
+        }
+    }
 
-	/* массив элементов для удаления */
+    cout<< "Average of successful search 1: " << s_sum1/s_count1 << "    " << s_count1;
+    cout<< "\nAverage of unsuccessful search 1: " << u_sum1/u_count1 << "    " << u_count1<< "\n"; 
 	
-	int deletions[] = {12, 52}, 
-		n3 = sizeof(deletions)/sizeof(deletions[0]); 
+    cout<< "Average of successful search 2: " << s_sum2/s_count2 << "    " << s_count2; 
+    cout<< "\nAverage of unsuccessful search 2: " << u_sum2/u_count2 << "    " << u_count2 << "\n"; 
+
+
+	// /* массив элементов для удаления */
 	
-	for(int i = 0; i < n3; i++) 
-		myHash.erase(deletions[i]); 
-    cout<< "elements remove: ";
-    for(int i = 0; i < n3; i++)
-        cout<< deletions[i] << ", ";
-    
-	cout<< "\nStatus of hash table after deleting elements : "; myHash.print(); 
+	// int deletions[] = {2}, 
+	// 	n3 = sizeof(deletions)/sizeof(deletions[0]); 
+	
+	// for(int i = 0; i < n3; i++) 
+	// 	myHash.erase(deletions[i]); 
+
+	// cout<< "Status of hash table after deleting elements : "; myHash.print(); 
 	
 	return 0; 
 }
